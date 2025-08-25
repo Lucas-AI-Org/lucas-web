@@ -1,0 +1,22 @@
+{
+  "private": true,
+  "packageManager": "pnpm@10.15.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "db:generate": "pnpm --filter @lucasai/db run db:generate",
+    "db:migrate": "pnpm --filter @lucasai/db run db:migrate",
+    "db:push": "pnpm --filter @lucasai/db run db:push",
+    "db:studio": "pnpm --filter @lucasai/db run db:studio"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.9.2"
+  }
+}
