@@ -1,5 +1,5 @@
 import express from 'express';
-import type { Request, Response, NextFunction } from 'express';
+import type { Request, Response } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { z } from 'zod';
@@ -10,8 +10,6 @@ const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
-
-// Dev: allow Vite origin. In prod, change to your SPA origin.
 app.use(
   cors({
     origin: ['http://localhost:5173'],
@@ -19,10 +17,14 @@ app.use(
   })
 );
 
-app.get('/health', (_req: Request, res: Response) => res.json({ ok: true }));
+app.get('/health', (_req: Request, res: Response) => {
+  res.json({ ok: true });
+});
 
 app.get('/api/universities', async (_req: Request, res: Response) => {
-  const universities = await prisma.university.findMany({ orderBy: { createdAt: 'desc' } });
+  const universities = await prisma.university.findMany({
+    orderBy: { createdAt: 'desc' },
+  });
   res.json(universities);
 });
 
@@ -31,14 +33,18 @@ const CreateUniversity = z.object({
   location: z.string().min(1),
   state: z.string().min(1),
 });
+type CreateUniversityBody = z.infer<typeof CreateUniversity>;
+
 app.post(
   '/api/universities',
-  async (req: Request<{}, {}, typeof CreateUniversity>, res: Response) => {
+  async (req: Request<{}, any, CreateUniversityBody>, res: Response) => {
     const parsed = CreateUniversity.safeParse(req.body);
-    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.flatten() });
+    }
 
     const university = await prisma.university.create({
-      data: { name: parsed.data.name, location: parsed.data.location, state: parsed.data.state },
+      data: parsed.data,
     });
     res.status(201).json(university);
   }
