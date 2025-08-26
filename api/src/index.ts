@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { z } from 'zod';
-import { PrismaClient } from './generated/prisma/client';
+import { PrismaClient } from '../prisma/generated/prisma/client.js';
 
 const prisma = new PrismaClient();
 const app = express();
@@ -20,20 +20,24 @@ app.use(
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
-app.get('/api/todos', async (_req, res) => {
-  const todos = await prisma.todo.findMany({ orderBy: { createdAt: 'desc' } });
-  res.json(todos);
+app.get('/api/universities', async (_req, res) => {
+  const universities = await prisma.university.findMany({ orderBy: { createdAt: 'desc' } });
+  res.json(universities);
 });
 
-const CreateTodo = z.object({ title: z.string().min(1) });
-app.post('/api/todos', async (req, res) => {
-  const parsed = CreateTodo.safeParse(req.body);
+const CreateUniversity = z.object({
+  name: z.string().min(1),
+  location: z.string().min(1),
+  state: z.string().min(1),
+});
+app.post('/api/universities', async (req, res) => {
+  const parsed = CreateUniversity.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const todo = await prisma.todo.create({
-    data: { title: parsed.data.title },
+  const university = await prisma.university.create({
+    data: { name: parsed.data.name, location: parsed.data.location, state: parsed.data.state },
   });
-  res.status(201).json(todo);
+  res.status(201).json(university);
 });
 
 const port = Number(process.env.PORT) || 3001;
