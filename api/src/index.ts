@@ -35,20 +35,15 @@ const CreateUniversity = z.object({
 });
 type CreateUniversityBody = z.infer<typeof CreateUniversity>;
 
-app.post(
-  '/api/universities',
-  async (req: Request<{}, any, CreateUniversityBody>, res: Response) => {
-    const parsed = CreateUniversity.safeParse(req.body);
-    if (!parsed.success) {
-      return res.status(400).json({ error: parsed.error.flatten() });
-    }
-
-    const university = await prisma.university.create({
-      data: parsed.data,
-    });
-    res.status(201).json(university);
+app.post('/api/universities', async (req: Request<{}, {}, CreateUniversityBody>, res: Response) => {
+  const parsed = CreateUniversity.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: parsed.error.flatten() });
   }
-);
+
+  const university = await prisma.university.create({ data: parsed.data });
+  res.status(201).json(university);
+});
 
 const port = Number(process.env.PORT) || 3001;
 app.listen(port, () => {
