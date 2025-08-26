@@ -1,4 +1,5 @@
 import express from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { z } from 'zod';
@@ -18,9 +19,9 @@ app.use(
   })
 );
 
-app.get('/health', (_req, res) => res.json({ ok: true }));
+app.get('/health', (_req: Request, res: Response) => res.json({ ok: true }));
 
-app.get('/api/universities', async (_req, res) => {
+app.get('/api/universities', async (_req: Request, res: Response) => {
   const universities = await prisma.university.findMany({ orderBy: { createdAt: 'desc' } });
   res.json(universities);
 });
@@ -30,15 +31,18 @@ const CreateUniversity = z.object({
   location: z.string().min(1),
   state: z.string().min(1),
 });
-app.post('/api/universities', async (req, res) => {
-  const parsed = CreateUniversity.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+app.post(
+  '/api/universities',
+  async (req: Request<{}, {}, typeof CreateUniversity>, res: Response) => {
+    const parsed = CreateUniversity.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
 
-  const university = await prisma.university.create({
-    data: { name: parsed.data.name, location: parsed.data.location, state: parsed.data.state },
-  });
-  res.status(201).json(university);
-});
+    const university = await prisma.university.create({
+      data: { name: parsed.data.name, location: parsed.data.location, state: parsed.data.state },
+    });
+    res.status(201).json(university);
+  }
+);
 
 const port = Number(process.env.PORT) || 3001;
 app.listen(port, () => {
