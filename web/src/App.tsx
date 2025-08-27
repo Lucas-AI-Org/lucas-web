@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 type University = { id: string; name: string; location: string; state: string };
 const UniversityCreate = z.object({
@@ -24,9 +25,14 @@ export default function App() {
     },
   });
 
-  const { register, handleSubmit, reset } = useForm<typeof UniversityCreate>();
+  type UniversityCreateValues = z.infer<typeof UniversityCreate>;
+
+  const { register, handleSubmit, reset } = useForm<UniversityCreateValues>({
+    resolver: zodResolver(UniversityCreate),
+  });
+
   const createUniversity = useMutation({
-    mutationFn: async (payload: typeof UniversityCreate) => {
+    mutationFn: async (payload: UniversityCreateValues) => {
       const body = UniversityCreate.parse(payload);
       const res = await fetch(`${BASE}/api/universities`, {
         method: 'POST',
