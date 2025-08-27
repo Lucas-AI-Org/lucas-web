@@ -12,7 +12,23 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ['http://localhost:5173'],
+    origin: (origin, callback) => {
+      if (!origin) {
+        // allow server-to-server or curl calls with no origin
+        return callback(null, true);
+      }
+
+      // whitelist localhost + any .vercel.app domain
+      const allowed =
+        origin.startsWith('http://localhost:5173') ||
+        /\.vercel\.app$/.test(new URL(origin).hostname);
+
+      if (allowed) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   })
 );
