@@ -14,7 +14,14 @@ app.use(
     origin: (origin, callback) => {
       if (!origin) return callback(null, true); // server-to-server / curl
       const hostname = new URL(origin).hostname;
-      const allowed = origin.startsWith('http://localhost:5173') || /\.vercel\.app$/.test(hostname);
+      const allowed =
+        origin.startsWith('http://localhost:5173') ||
+        /\.vercel\.app$/.test(hostname) ||
+        /\.ngrok\.io$/.test(hostname) ||
+        // /\.railway\.app$/.test(hostname) ||
+        // /\.render\.com$/.test(hostname) ||
+        // /\.fly\.io$/.test(hostname) ||
+        /\.meetlucas\.ai$/.test(hostname);
       return allowed ? callback(null, true) : callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
