@@ -1,0 +1,98 @@
+
+/** Selectivity & test scores */
+model Admissions {
+  unitId      Int        @id
+  university  University @relation(fields: [unitId], references: [unitId], onDelete: Cascade)
+
+  admRateAll  Decimal?   @db.Decimal(5,4) // ADM_RATE_ALL
+  admRate     Decimal?   @db.Decimal(5,4) // ADM_RATE (fallback)
+
+  satVrMid    Int?       // SATVRMID
+  satMtMid    Int?       // SATMTMID
+  actCmMid    Int?       // ACTCMMID
+  satAvgAll   Int?       // SAT_AVG_ALL
+  satAvg      Int?       // SAT_AVG
+
+  // Optional bands if you want them
+  satVr25     Int?
+  satVr75     Int?
+  satMt25     Int?
+  satMt75     Int?
+  actCm25     Int?
+  actCm75     Int?
+}
+
+/** Sticker price + aid mix (net prices are broken out per income bracket) */
+model CostAid {
+  unitId        Int        @id
+  university    University @relation(fields: [unitId], references: [unitId], onDelete: Cascade)
+
+  tuitionIn     Int?       // TUITIONFEE_IN
+  tuitionOut    Int?       // TUITIONFEE_OUT
+  costAvg       Int?       // COSTT4_A
+  costProgram   Int?       // COSTT4_P
+  tuitFte       Int?       // TUITFTE
+  inExpFte      Int?       // INEXPFTE
+
+  pctPell       Decimal?   @db.Decimal(5,4) // PCTPELL
+  pctLoan       Decimal?   @db.Decimal(5,4) // PCTFLOAN
+  ftftPctPell   Decimal?   @db.Decimal(5,4) // FTFTPCTPELL
+  ftftPctLoan   Decimal?   @db.Decimal(5,4) // FTFTPCTFLOAN
+}
+
+/** Net price by income bracket and sector (PUB/PRIV/PROG/OTHER) */
+model NetPrice {
+  id          BigInt      @id @default(autoincrement())
+  unitId      Int
+  university  University  @relation(fields: [unitId], references: [unitId], onDelete: Cascade)
+  sector      NetPriceSector
+  bracket     IncomeBracket
+  amount      Int?                        // dollars
+
+  @@unique([unitId, sector, bracket])
+  @@index([sector])
+  @@index([bracket])
+}
+
+/** Outcomes & ROI (lean set) */
+model Outcomes {
+  unitId          Int        @id
+  university      University @relation(fields: [unitId], references: [unitId], onDelete: Cascade)
+
+  c150_4          Decimal?   @db.Decimal(5,4) // C150_4 (150% time grad rate, 4-yr)
+  c200_4          Decimal?   @db.Decimal(5,4) // C200_4
+  retFt4          Decimal?   @db.Decimal(5,4) // RET_FT4
+  mdEarnWneP10    Int?                   // MD_EARN_WNE_P10
+  gtThresholdP10  Decimal?   @db.Decimal(5,4) // GT_THRESHOLD_P10 (or GT_25K_P10 style)
+  debtMdn         Int?                   // DEBT_MDN
+  cdr3            Decimal?   @db.Decimal(5,4) // CDR3 (3-yr cohort default rate)
+  rpy3YrRt        Decimal?   @db.Decimal(5,4) // RPY_3YR_RT
+
+  // Optional alternates
+  mdEarnWneP6     Int?
+  mdEarnWneP8     Int?
+}
+
+/** Experience / instruction */
+model Experience {
+  unitId         Int        @id
+  university     University @relation(fields: [unitId], references: [unitId], onDelete: Cascade)
+
+  stuFacRatio    Decimal?   @db.Decimal(6,3) // STUFACR
+  avgFacSal      Int?                   // AVGFACSAL
+  pctFullTimeFac Decimal?   @db.Decimal(5,4) // PFTFAC
+}
+
+/** Program strength shares (PCIP** fields) by 2-digit CIP */
+model ProgramShare {
+  id          BigInt      @id @default(autoincrement())
+  unitId      Int
+  university  University  @relation(fields: [unitId], references: [unitId], onDelete: Cascade)
+
+  cip2        String                   // e.g., "11"=CS, "14"=Engineering
+  share       Decimal?   @db.Decimal(5,4) // 0..1 (PCIPxx)
+  title       String?                  // optional: from CIPTITLE* if you want a label
+
+  @@unique([unitId, cip2])
+  @@index([cip2])
+}

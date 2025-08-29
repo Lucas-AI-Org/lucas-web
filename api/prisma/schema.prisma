@@ -14,11 +14,80 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+/** Enums */
+enum Control {
+  PUBLIC
+  PRIVATE_NONPROFIT
+  PRIVATE_FORPROFIT
+}
+
+enum IncomeBracket {
+  B1_0_30K
+  B2_30_48K
+  B3_48_75K
+  B4_75_110K
+  B5_110K_PLUS
+}
+
+enum NetPriceSector {
+  PUB     // NPT4_*_PUB
+  PRIV    // NPT4_*_PRIV
+  PROG    // NPT4_*_PROG
+  OTHER   // NPT4_*_OTHER
+}
+
+/** Core institution */
 model University {
-  id         String   @id @default(cuid())
-  name       String
-  location   String
-  state      String
+  // Identity / type
+  unitId        Int     @unique @id 
+  name          String                    // INSTNM
+  alias         String?                   // ALIAS
+  control       Control?                  // from CONTROL (1,2,3) → enum in ETL
+  schDeg        Int?                      // SCH_DEG (raw code)
+  highDeg       Int?                      // HIGHDEG (raw code)
+  predDeg       Int?                      // PREDDEG (raw code)
+  icLevel       Int?                      // ICLEVEL (raw code)
+  accredAgency  String?                   // ACCREDAGENCY
+  openAdmp      Boolean?                  // OPENADMP (0/1)
+  curroper      Boolean?                  // CURROPER (0/1)
+  main          Boolean?                  // MAIN
+  numBranch     Int?                      // NUMBRANCH
+
+  // Location & size
+  city          String?                   // CITY
+  state         String?                   // STABBR
+  region        Int?                      // REGION (code)
+  zip           String?                   // ZIP
+  locale        Int?                      // LOCALE (code)
+  latitude      Float?                    // LATITUDE
+  longitude     Float?                    // LONGITUDE
+  ugds          Int?                      // UGDS
+  ccSizSet      Int?                      // CCSIZSET
+
+  // Designations / filters
+  hBCU          Boolean?                  // HBCU
+  hSI           Boolean?                  // HSI
+  aANAPII       Boolean?                  // AANAPII
+  pBI           Boolean?                  // PBI
+  tribal        Boolean?                  // TRIBAL
+  menOnly       Boolean?                  // MENONLY
+  womenOnly     Boolean?                  // WOMENONLY
+  relAffil      Int?                      // RELAFFIL (code)
+  schType       Int?                      // SCHTYPE (code)
+  controlPeps   Int?                      // CONTROL_PEPS (code)
+
+  // URLs / delivery
+  instUrl       String?                   // INSTURL
+  npcUrl        String?                   // NPCURL
+  distanceOnly  Boolean?                  // DISTANCEONLY
+  prgmOfr       String?                   // PRGMOFR (as-is; often sparse)
+
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+
+  @@index([state])
+  @@index([region])
+  @@index([name])
 }
